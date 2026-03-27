@@ -365,8 +365,8 @@
         </div>
         <div class="field">
           <label>Message (7 lines, 24 chars per line)</label>
-          <textarea id="msg-text" rows="5" maxlength="160" placeholder="Line 1&#10;Line 2&#10;Line 3&#10;Line 4&#10;Line 5"></textarea>
-          <div class="hint">Each line is centered on the board. Max 24 characters per line, 5 lines.</div>
+          <textarea id="msg-text" rows="7" maxlength="200" placeholder="Line 1&#10;Line 2&#10;Line 3&#10;Line 4&#10;Line 5&#10;Line 6&#10;Line 7"></textarea>
+          <div class="hint">Each line is centered on the board. Max 24 characters per line, 7 lines.</div>
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" id="msg-save">Show Message</button>
@@ -525,7 +525,7 @@
     // --- Custom message ---
     $('msg-save').addEventListener('click', async () => {
       const text = $('msg-text').value;
-      const lines = text.split('\n').slice(0, 5);
+      const lines = text.split('\n').slice(0, 7);
 
       try {
         await apiPut('/api/message', { lines });
