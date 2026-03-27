@@ -223,6 +223,28 @@
       transition: opacity 0.2s;
     }
     .board-link:hover { opacity: 1; }
+    .quick-msgs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .quick-msg {
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      background: #2a2a2a;
+      color: #aaa;
+      border: 1px solid #333;
+      transition: all 0.2s;
+    }
+    .quick-msg:hover {
+      background: #333;
+      color: #eee;
+      border-color: #00AAFF;
+    }
   </style>
 </head>
 <body>
@@ -330,6 +352,17 @@
     <div id="panel-message" class="hidden">
       <div class="section">
         <h2>Custom Board Text</h2>
+        <div class="field">
+          <label>Quick Messages</label>
+          <div class="quick-msgs">
+            <button class="quick-msg" data-msg="&#10;&#10;WILLKOMMEN&#10;&#10;">WILLKOMMEN</button>
+            <button class="quick-msg" data-msg="&#10;&#10;FROHE&#10;WEIHNACHTEN&#10;">WEIHNACHTEN</button>
+            <button class="quick-msg" data-msg="&#10;&#10;FROHES NEUES&#10;JAHR&#10;">NEUES JAHR</button>
+            <button class="quick-msg" data-msg="&#10;BETRIEBSURLAUB&#10;&#10;WIR SIND AB&#10;XX.XX. ZURUECK">BETRIEBSURLAUB</button>
+            <button class="quick-msg" data-msg="&#10;&#10;WARTUNGSARBEITEN&#10;&#10;">WARTUNG</button>
+            <button class="quick-msg" data-msg="&#10;&#10;BITTE WARTEN&#10;&#10;">BITTE WARTEN</button>
+          </div>
+        </div>
         <div class="field">
           <label>Message (7 lines, 24 chars per line)</label>
           <textarea id="msg-text" rows="7" maxlength="200" placeholder="Line 1&#10;Line 2&#10;Line 3&#10;Line 4&#10;Line 5&#10;Line 6&#10;Line 7"></textarea>
@@ -510,6 +543,13 @@
       } catch (e) {
         showToast(e.message, true);
       }
+    });
+
+    // --- Quick messages ---
+    document.querySelectorAll('.quick-msg').forEach(btn => {
+      btn.addEventListener('click', () => {
+        $('msg-text').value = btn.dataset.msg;
+      });
     });
 
     // --- Init ---
