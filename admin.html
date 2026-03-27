@@ -355,18 +355,18 @@
         <div class="field">
           <label>Quick Messages</label>
           <div class="quick-msgs">
-            <button class="quick-msg" data-msg="&#10;&#10;WILLKOMMEN&#10;&#10;">WILLKOMMEN</button>
-            <button class="quick-msg" data-msg="&#10;&#10;FROHE&#10;WEIHNACHTEN&#10;">WEIHNACHTEN</button>
-            <button class="quick-msg" data-msg="&#10;&#10;FROHES NEUES&#10;JAHR&#10;">NEUES JAHR</button>
-            <button class="quick-msg" data-msg="&#10;BETRIEBSURLAUB&#10;&#10;WIR SIND AB&#10;XX.XX. ZURUECK">BETRIEBSURLAUB</button>
-            <button class="quick-msg" data-msg="&#10;&#10;WARTUNGSARBEITEN&#10;&#10;">WARTUNG</button>
-            <button class="quick-msg" data-msg="&#10;&#10;BITTE WARTEN&#10;&#10;">BITTE WARTEN</button>
+            <button class="quick-msg" data-msg="&#10;&#10;WILLKOMMEN&#10;">WILLKOMMEN</button>
+            <button class="quick-msg" data-msg="&#10;FROHE&#10;WEIHNACHTEN&#10;">WEIHNACHTEN</button>
+            <button class="quick-msg" data-msg="&#10;FROHES NEUES&#10;JAHR&#10;">NEUES JAHR</button>
+            <button class="quick-msg" data-msg="BETRIEBSURLAUB&#10;&#10;WIR SIND AB&#10;XX.XX. ZURUECK">BETRIEBSURLAUB</button>
+            <button class="quick-msg" data-msg="&#10;&#10;WARTUNGSARBEITEN&#10;">WARTUNG</button>
+            <button class="quick-msg" data-msg="&#10;&#10;BITTE WARTEN&#10;">BITTE WARTEN</button>
           </div>
         </div>
         <div class="field">
           <label>Message (7 lines, 24 chars per line)</label>
-          <textarea id="msg-text" rows="7" maxlength="200" placeholder="Line 1&#10;Line 2&#10;Line 3&#10;Line 4&#10;Line 5&#10;Line 6&#10;Line 7"></textarea>
-          <div class="hint">Each line is centered on the board. Max 24 characters per line.</div>
+          <textarea id="msg-text" rows="5" maxlength="160" placeholder="Line 1&#10;Line 2&#10;Line 3&#10;Line 4&#10;Line 5"></textarea>
+          <div class="hint">Each line is centered on the board. Max 28 characters per line, 5 lines.</div>
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" id="msg-save">Show Message</button>
@@ -525,7 +525,7 @@
     // --- Custom message ---
     $('msg-save').addEventListener('click', async () => {
       const text = $('msg-text').value;
-      const lines = text.split('\n').slice(0, 7);
+      const lines = text.split('\n').slice(0, 5);
 
       try {
         await apiPut('/api/message', { lines });

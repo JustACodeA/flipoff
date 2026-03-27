@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentData = null;
   let lastRenderedKey = null;
 
-  // --- Live clock + countdown line generation ---
+  function pad(str, len) {
+    return (str || '').substring(0, len).padEnd(len, ' ');
+  }
 
   function getClockLine() {
     const now = new Date();
@@ -33,45 +35,50 @@ document.addEventListener('DOMContentLoaded', () => {
     const now = new Date();
     const target = new Date();
     target.setHours(h, m, 0, 0);
-
     return Math.round((target - now) / 60000);
+  }
+
+  function formatAircraftLine(ac) {
+    const reg = pad(ac.registration, 6);
+    const sts = pad(ac.status, 7);
+
+    if (ac.status === 'FLUG' && ac.eta) {
+      const mins = getMinutesUntil(ac.eta);
+      if (mins !== null && mins > 0) {
+        return `${reg} ${sts} ${pad(String(mins) + 'MIN', 5)} ${pad(ac.eta, 5)}`;
+      } else if (mins !== null && mins <= 0) {
+        return `${reg} ${sts} LANDG ${pad(ac.eta, 5)}`;
+      }
+    }
+
+    const etd = ac.etd ? pad(ac.etd, 5) : '  -  ';
+    const eta = ac.eta ? pad(ac.eta, 5) : '  -  ';
+    return `${reg} ${sts} ${etd} ${eta}`;
   }
 
   function generateLines(data) {
     if (!data) return null;
 
-    // Custom message mode — pass through, but add live clock on last line
+    // Custom message mode
     if (data.mode === 'message') {
       const lines = [];
-      for (let i = 0; i < 7; i++) {
+      for (let i = 0; i < 5; i++) {
         lines.push((data.customLines && data.customLines[i]) || '');
       }
       return lines;
     }
 
-    // Aircraft mode — take server lines as base, overlay live data
-    const lines = [...data.lines];
+    // Aircraft mode — rebuild lines client-side for live countdown
+    const a1 = data.aircraft[0];
+    const a2 = data.aircraft[1];
 
-    // Row 6: live clock (replaces static "UPDATED" timestamp)
-    lines[6] = getClockLine();
-
-    // Countdown for aircraft in FLUG status
-    if (data.aircraft) {
-      data.aircraft.forEach((ac, i) => {
-        if (ac.status === 'FLUG' && ac.eta) {
-          const mins = getMinutesUntil(ac.eta);
-          if (mins !== null && mins > 0) {
-            const timeRow = i === 0 ? 3 : 5;
-            lines[timeRow] = `ETA ${ac.eta}  IN ${mins} MIN`;
-          } else if (mins !== null && mins <= 0) {
-            const timeRow = i === 0 ? 3 : 5;
-            lines[timeRow] = `ETA ${ac.eta}  LANDED`;
-          }
-        }
-      });
-    }
-
-    return lines;
+    return [
+      'FLEET STATUS BOARD',
+      'REG    STATUS  ETD   ETA',
+      formatAircraftLine(a1),
+      formatAircraftLine(a2),
+      getClockLine()
+    ];
   }
 
   function updateBoard() {
@@ -99,17 +106,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Initial fetch
   fetchStatus();
 
-  // Poll API for data changes
   setInterval(() => {
     if (!board.isTransitioning) {
       fetchStatus();
     }
   }, POLL_INTERVAL);
 
-  // Update clock + countdown every 10s (only animates when minute changes)
+  // Update clock + countdown every 10s
   setInterval(() => {
     updateBoard();
   }, 10000);
@@ -128,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', initAudio);
   document.addEventListener('keydown', initAudio);
 
-  // --- Keyboard shortcuts (F = fullscreen, M = mute) ---
+  // --- Keyboard shortcuts ---
 
   document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
