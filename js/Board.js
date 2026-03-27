@@ -1,6 +1,6 @@
 import { Tile } from './Tile.js';
 import {
-  GRID_COLS, GRID_ROWS, STAGGER_DELAY, SCRAMBLE_DURATION,
+  GRID_COLS, GRID_ROWS, STAGGER_DELAY,
   TOTAL_TRANSITION, ACCENT_COLORS
 } from './constants.js';
 
@@ -20,7 +20,7 @@ export class Board {
     this.boardEl.style.setProperty('--grid-cols', this.cols);
     this.boardEl.style.setProperty('--grid-rows', this.rows);
 
-    // Left accent squares (2 small stacked blocks)
+    // Left accent squares
     this.leftBar = this._createAccentBar('accent-bar-left');
     this.boardEl.appendChild(this.leftBar);
 
@@ -48,29 +48,6 @@ export class Board {
     this.rightBar = this._createAccentBar('accent-bar-right');
     this.boardEl.appendChild(this.rightBar);
 
-    // Keyboard hint icon (bottom-left)
-    const hint = document.createElement('div');
-    hint.className = 'keyboard-hint';
-    hint.textContent = 'N';
-    hint.title = 'Keyboard shortcuts';
-    hint.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const overlay = this.boardEl.querySelector('.shortcuts-overlay');
-      if (overlay) overlay.classList.toggle('visible');
-    });
-    this.boardEl.appendChild(hint);
-
-    // Shortcuts overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'shortcuts-overlay';
-    overlay.innerHTML = `
-      <div><span>Next message</span><kbd>Enter</kbd></div>
-      <div><span>Previous</span><kbd>\u2190</kbd></div>
-      <div><span>Fullscreen</span><kbd>F</kbd></div>
-      <div><span>Mute</span><kbd>M</kbd></div>
-    `;
-    this.boardEl.appendChild(overlay);
-
     containerEl.appendChild(this.boardEl);
     this._updateAccentColors();
   }
@@ -78,7 +55,6 @@ export class Board {
   _createAccentBar(extraClass) {
     const bar = document.createElement('div');
     bar.className = `accent-bar ${extraClass}`;
-    // Just 2 small stacked squares like the original
     for (let i = 0; i < 2; i++) {
       const seg = document.createElement('div');
       seg.className = 'accent-segment';
@@ -97,13 +73,25 @@ export class Board {
 
   displayMessage(lines) {
     if (this.isTransitioning) return;
-    this.isTransitioning = true;
 
     // Format lines into grid
     const newGrid = this._formatToGrid(lines);
 
-    // Determine which tiles need to change
+    // Check if anything actually changed
     let hasChanges = false;
+    for (let r = 0; r < this.rows; r++) {
+      for (let c = 0; c < this.cols; c++) {
+        if (newGrid[r][c] !== this.currentGrid[r][c]) {
+          hasChanges = true;
+          break;
+        }
+      }
+      if (hasChanges) break;
+    }
+
+    if (!hasChanges) return;
+
+    this.isTransitioning = true;
 
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
@@ -113,17 +101,16 @@ export class Board {
         if (newChar !== oldChar) {
           const delay = (r * this.cols + c) * STAGGER_DELAY;
           this.tiles[r][c].scrambleTo(newChar, delay);
-          hasChanges = true;
         }
       }
     }
 
-    // Play the single transition audio clip once
-    if (hasChanges && this.soundEngine) {
+    // Play transition audio
+    if (this.soundEngine) {
       this.soundEngine.playTransition();
     }
 
-    // Update accent bar colors
+    // Cycle accent colors
     this.accentIndex++;
     this._updateAccentColors();
 

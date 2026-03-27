@@ -1,11 +1,10 @@
-export const GRID_COLS = 22;
-export const GRID_ROWS = 5;
+export const GRID_COLS = 24;
+export const GRID_ROWS = 7;
 
 export const SCRAMBLE_DURATION = 800;
 export const FLIP_DURATION = 300;
 export const STAGGER_DELAY = 25;
 export const TOTAL_TRANSITION = 3800;
-export const MESSAGE_INTERVAL = 4000;
 
 export const CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789.,-!?\'/: ';
 
@@ -19,47 +18,4 @@ export const ACCENT_COLORS = [
   '#00AAFF', '#00FFCC'
 ];
 
-export const MESSAGES = [
-  [
-    '',
-    'GOD IS IN',
-    'THE DETAILS .',
-    '- LUDWIG MIES',
-    ''
-  ],
-  [
-    '',
-    'STAY HUNGRY',
-    'STAY FOOLISH',
-    '- STEVE JOBS',
-    ''
-  ],
-  [
-    '',
-    'GOOD DESIGN IS',
-    'GOOD BUSINESS',
-    '- THOMAS WATSON',
-    ''
-  ],
-  [
-    '',
-    'LESS IS MORE',
-    '',
-    '- MIES VAN DER ROHE',
-    ''
-  ],
-  [
-    '',
-    'MAKE IT SIMPLE',
-    'BUT SIGNIFICANT',
-    '- DON DRAPER',
-    ''
-  ],
-  [
-    '',
-    'HAVE NO FEAR OF',
-    'PERFECTION',
-    '- SALVADOR DALI',
-    ''
-  ]
-];
+export const POLL_INTERVAL = 5000;

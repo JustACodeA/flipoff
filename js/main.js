@@ -1,14 +1,42 @@
 import { Board } from './Board.js';
 import { SoundEngine } from './SoundEngine.js';
-import { MessageRotator } from './MessageRotator.js';
-import { KeyboardController } from './KeyboardController.js';
+import { POLL_INTERVAL, TOTAL_TRANSITION } from './constants.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const boardContainer = document.getElementById('board-container');
   const soundEngine = new SoundEngine();
   const board = new Board(boardContainer, soundEngine);
-  const rotator = new MessageRotator(board);
-  const keyboard = new KeyboardController(rotator, soundEngine);
+
+  let lastLines = null;
+  let pollTimer = null;
+
+  // Fetch status from API and update board
+  async function fetchAndDisplay() {
+    try {
+      const res = await fetch('/api/status');
+      if (!res.ok) return;
+      const data = await res.json();
+
+      // Only trigger animation if lines actually changed
+      const newLines = JSON.stringify(data.lines);
+      if (newLines !== lastLines) {
+        lastLines = newLines;
+        board.displayMessage(data.lines);
+      }
+    } catch (e) {
+      // Network error — silently retry on next poll
+    }
+  }
+
+  // Initial fetch
+  fetchAndDisplay();
+
+  // Poll for updates
+  pollTimer = setInterval(() => {
+    if (!board.isTransitioning) {
+      fetchAndDisplay();
+    }
+  }, POLL_INTERVAL);
 
   // Initialize audio on first user interaction (browser autoplay policy)
   let audioInitialized = false;
@@ -23,29 +51,33 @@ document.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('click', initAudio);
   document.addEventListener('keydown', initAudio);
 
-  // Start message rotation
-  rotator.start();
+  // Keyboard shortcuts (F = fullscreen, M = mute, Escape = exit)
+  document.addEventListener('keydown', (e) => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-  // Volume toggle button in header
-  const volumeBtn = document.getElementById('volume-btn');
-  if (volumeBtn) {
-    volumeBtn.addEventListener('click', () => {
-      initAudio();
-      const muted = soundEngine.toggleMute();
-      volumeBtn.classList.toggle('muted', muted);
-    });
-  }
+    switch (e.key) {
+      case 'f':
+      case 'F':
+        e.preventDefault();
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+        break;
 
-  // "Get Early Access" button: scroll to board and go fullscreen
-  const ctaBtn = document.getElementById('cta-btn');
-  if (ctaBtn) {
-    ctaBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      initAudio();
-      boardContainer.scrollIntoView({ behavior: 'smooth' });
-      setTimeout(() => {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }, 400);
-    });
-  }
+      case 'm':
+      case 'M':
+        e.preventDefault();
+        initAudio();
+        soundEngine.toggleMute();
+        break;
+
+      case 'Escape':
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        }
+        break;
+    }
+  });
 });

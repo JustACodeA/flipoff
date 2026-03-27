@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#111111">
+  <title>Fleet Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+      background: #111;
+      color: #eee;
+      min-height: 100vh;
+      padding: 24px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #00AAFF;
+      margin-bottom: 24px;
+    }
+    h2 {
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #888;
+      margin-bottom: 12px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .section {
+      background: #1a1a1a;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .field {
+      margin-bottom: 12px;
+    }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #666;
+      margin-bottom: 4px;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 6px;
+      color: #eee;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 14px;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      outline: none;
+      border-color: #00AAFF;
+    }
+    .field select {
+      appearance: none;
+      cursor: pointer;
+    }
+    .field textarea {
+      resize: vertical;
+      min-height: 100px;
+      line-height: 1.6;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .row-3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    button {
+      font: inherit;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-primary {
+      background: #00AAFF;
+      color: #000;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: #33bbff;
+    }
+    .btn-danger {
+      background: #FF2D00;
+      color: #fff;
+    }
+    .btn-danger:hover:not(:disabled) {
+      background: #ff5533;
+    }
+    .btn-secondary {
+      background: #333;
+      color: #ccc;
+    }
+    .btn-secondary:hover:not(:disabled) {
+      background: #444;
+    }
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .aircraft-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .aircraft-header h2 {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: rgba(0, 170, 255, 0.9);
+      color: #000;
+      padding: 10px 24px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      pointer-events: none;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      z-index: 100;
+    }
+    .toast.visible {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+    .toast.error {
+      background: rgba(255, 45, 0, 0.9);
+      color: #fff;
+    }
+    .mode-tabs {
+      display: flex;
+      gap: 4px;
+      margin-bottom: 16px;
+      background: #1a1a1a;
+      border-radius: 8px;
+      padding: 4px;
+    }
+    .mode-tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: #666;
+      background: transparent;
+      transition: all 0.2s;
+    }
+    .mode-tab.active {
+      background: #00AAFF;
+      color: #000;
+    }
+    .mode-tab:hover:not(.active) {
+      color: #aaa;
+    }
+    .hidden { display: none !important; }
+    .auth-section {
+      margin-bottom: 16px;
+    }
+    .hint {
+      font-size: 11px;
+      color: #555;
+      margin-top: 4px;
+    }
+    .board-link {
+      display: inline-block;
+      color: #00AAFF;
+      font-size: 13px;
+      margin-bottom: 24px;
+      text-decoration: none;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .board-link:hover { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Fleet Admin</h1>
+    <a href="/" class="board-link" target="_blank">&larr; Open Status Board</a>
+
+    <!-- Auth -->
+    <div class="auth-section">
+      <div class="field">
+        <label>API Secret</label>
+        <input type="password" id="api-secret" placeholder="Enter API secret...">
+        <div class="hint">Stored in browser only. Required for updates.</div>
+      </div>
+    </div>
+
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" data-mode="aircraft" id="tab-aircraft">Aircraft Status</button>
+      <button class="mode-tab" data-mode="message" id="tab-message">Custom Message</button>
+    </div>
+
+    <!-- Aircraft Mode -->
+    <div id="panel-aircraft">
+      <!-- Aircraft 1 -->
+      <div class="section" id="ac1-section">
+        <div class="aircraft-header">
+          <h2>Aircraft 1</h2>
+          <span class="status-dot" id="ac1-dot"></span>
+        </div>
+        <div class="field">
+          <label>Registration</label>
+          <input type="text" id="ac1-reg" maxlength="8" placeholder="D-ABCD">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="ac1-status">
+            <option value="READY">READY</option>
+            <option value="FLUG">FLUG</option>
+            <option value="SERVICE">SERVICE</option>
+            <option value="MAINT">MAINT</option>
+            <option value="PARKED">PARKED</option>
+          </select>
+        </div>
+        <div class="row-3">
+          <div class="field">
+            <label>ETD</label>
+            <input type="text" id="ac1-etd" maxlength="5" placeholder="08:00">
+          </div>
+          <div class="field">
+            <label>ETA</label>
+            <input type="text" id="ac1-eta" maxlength="5" placeholder="09:30">
+          </div>
+          <div class="field">
+            <label>Duration (min)</label>
+            <input type="number" id="ac1-dur" min="0" placeholder="90">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="ac1-save">Save Aircraft 1</button>
+        </div>
+      </div>
+
+      <!-- Aircraft 2 -->
+      <div class="section" id="ac2-section">
+        <div class="aircraft-header">
+          <h2>Aircraft 2</h2>
+          <span class="status-dot" id="ac2-dot"></span>
+        </div>
+        <div class="field">
+          <label>Registration</label>
+          <input type="text" id="ac2-reg" maxlength="8" placeholder="D-EFGH">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="ac2-status">
+            <option value="READY">READY</option>
+            <option value="FLUG">FLUG</option>
+            <option value="SERVICE">SERVICE</option>
+            <option value="MAINT">MAINT</option>
+            <option value="PARKED">PARKED</option>
+          </select>
+        </div>
+        <div class="row-3">
+          <div class="field">
+            <label>ETD</label>
+            <input type="text" id="ac2-etd" maxlength="5" placeholder="12:00">
+          </div>
+          <div class="field">
+            <label>ETA</label>
+            <input type="text" id="ac2-eta" maxlength="5" placeholder="13:30">
+          </div>
+          <div class="field">
+            <label>Duration (min)</label>
+            <input type="number" id="ac2-dur" min="0" placeholder="90">
+          </div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="ac2-save">Save Aircraft 2</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Message Mode -->
+    <div id="panel-message" class="hidden">
+      <div class="section">
+        <h2>Custom Board Text</h2>
+        <div class="field">
+          <label>Message (7 lines, 24 chars per line)</label>
+          <textarea id="msg-text" rows="7" maxlength="200" placeholder="Line 1&#10;Line 2&#10;Line 3&#10;Line 4&#10;Line 5&#10;Line 6&#10;Line 7"></textarea>
+          <div class="hint">Each line is centered on the board. Max 24 characters per line.</div>
+        </div>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="msg-save">Show Message</button>
+          <button class="btn btn-danger" id="msg-clear">Back to Aircraft</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    const STATUS_COLORS = {
+      READY: '#00FF7F',
+      FLUG: '#00AAFF',
+      SERVICE: '#FFCC00',
+      MAINT: '#FF4D00',
+      PARKED: '#888'
+    };
+
+    // --- Toast ---
+    let toastTimer;
+    function showToast(msg, isError) {
+      const t = $('toast');
+      t.textContent = msg;
+      t.className = isError ? 'toast visible error' : 'toast visible';
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => { t.className = 'toast'; }, 2500);
+    }
+
+    // --- Auth ---
+    function getSecret() {
+      return $('api-secret').value.trim();
+    }
+    // Persist secret in sessionStorage
+    $('api-secret').value = sessionStorage.getItem('fleet-secret') || '';
+    $('api-secret').addEventListener('input', () => {
+      sessionStorage.setItem('fleet-secret', $('api-secret').value);
+    });
+
+    // --- API calls ---
+    async function apiGet(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+      return res.json();
+    }
+
+    async function apiPut(url, data) {
+      const res = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${getSecret()}`
+        },
+        body: JSON.stringify(data)
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || `${res.status}`);
+      return json;
+    }
+
+    async function apiDelete(url) {
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${getSecret()}` }
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || `${res.status}`);
+      return json;
+    }
+
+    // --- Load current state ---
+    async function loadState() {
+      try {
+        const data = await apiGet('/api/status');
+        const a1 = data.aircraft[0];
+        const a2 = data.aircraft[1];
+
+        $('ac1-reg').value = a1.registration || '';
+        $('ac1-status').value = a1.status || 'READY';
+        $('ac1-etd').value = a1.etd || '';
+        $('ac1-eta').value = a1.eta || '';
+        $('ac1-dur').value = a1.duration || '';
+        $('ac1-dot').style.backgroundColor = STATUS_COLORS[a1.status] || '#888';
+
+        $('ac2-reg').value = a2.registration || '';
+        $('ac2-status').value = a2.status || 'READY';
+        $('ac2-etd').value = a2.etd || '';
+        $('ac2-eta').value = a2.eta || '';
+        $('ac2-dur').value = a2.duration || '';
+        $('ac2-dot').style.backgroundColor = STATUS_COLORS[a2.status] || '#888';
+
+        if (data.customLines && data.customLines.length > 0) {
+          $('msg-text').value = data.customLines.join('\n');
+        }
+
+        // Set active mode tab
+        if (data.mode === 'message') {
+          switchTab('message');
+        } else {
+          switchTab('aircraft');
+        }
+      } catch (e) {
+        showToast('Failed to load status', true);
+      }
+    }
+
+    // --- Mode tabs ---
+    function switchTab(mode) {
+      $('tab-aircraft').classList.toggle('active', mode === 'aircraft');
+      $('tab-message').classList.toggle('active', mode === 'message');
+      $('panel-aircraft').classList.toggle('hidden', mode !== 'aircraft');
+      $('panel-message').classList.toggle('hidden', mode !== 'message');
+    }
+
+    $('tab-aircraft').addEventListener('click', () => switchTab('aircraft'));
+    $('tab-message').addEventListener('click', () => switchTab('message'));
+
+    // --- Save aircraft ---
+    async function saveAircraft(id) {
+      const prefix = id === 1 ? 'ac1' : 'ac2';
+      const data = {
+        registration: $(prefix + '-reg').value.trim(),
+        status: $(prefix + '-status').value,
+        etd: $(prefix + '-etd').value.trim(),
+        eta: $(prefix + '-eta').value.trim(),
+        duration: parseInt($(prefix + '-dur').value, 10) || 0
+      };
+
+      try {
+        const result = await apiPut(`/api/aircraft/${id}`, data);
+        // Also switch to aircraft mode if we were in message mode
+        if (result.mode === 'message') {
+          await apiDelete('/api/message');
+        }
+        showToast(`Aircraft ${id} updated`);
+        loadState();
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    }
+
+    $('ac1-save').addEventListener('click', () => saveAircraft(1));
+    $('ac2-save').addEventListener('click', () => saveAircraft(2));
+
+    // Update status dot color on change
+    $('ac1-status').addEventListener('change', (e) => {
+      $('ac1-dot').style.backgroundColor = STATUS_COLORS[e.target.value] || '#888';
+    });
+    $('ac2-status').addEventListener('change', (e) => {
+      $('ac2-dot').style.backgroundColor = STATUS_COLORS[e.target.value] || '#888';
+    });
+
+    // --- Custom message ---
+    $('msg-save').addEventListener('click', async () => {
+      const text = $('msg-text').value;
+      const lines = text.split('\n').slice(0, 7);
+
+      try {
+        await apiPut('/api/message', { lines });
+        showToast('Custom message displayed');
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    });
+
+    $('msg-clear').addEventListener('click', async () => {
+      try {
+        await apiDelete('/api/message');
+        showToast('Back to aircraft status');
+        switchTab('aircraft');
+      } catch (e) {
+        showToast(e.message, true);
+      }
+    });
+
+    // --- Init ---
+    loadState();
+  </script>
+</body>
+</html>
