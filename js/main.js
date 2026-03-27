@@ -40,12 +40,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function formatAircraftLine(ac) {
     const reg = pad(ac.registration, 6);
-    const sts = pad(ac.status, 7);
+    const sts = pad(ac.status, 5);
 
     if (ac.status === 'FLUG' && ac.eta) {
       const mins = getMinutesUntil(ac.eta);
       if (mins !== null && mins > 0) {
-        return `${reg} ${sts} ${pad(String(mins) + 'MIN', 5)} ${pad(ac.eta, 5)}`;
+        return `${reg} ${sts} ${pad(mins + 'M', 5)} ${pad(ac.eta, 5)}`;
       } else if (mins !== null && mins <= 0) {
         return `${reg} ${sts} LANDG ${pad(ac.eta, 5)}`;
       }
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     return [
       'FLEET STATUS BOARD',
-      'REG    STATUS  ETD   ETA',
+      'REG    STAT  ETD   ETA',
       formatAircraftLine(a1),
       formatAircraftLine(a2),
       getClockLine()
