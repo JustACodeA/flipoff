@@ -62,21 +62,23 @@ document.addEventListener('DOMContentLoaded', () => {
     // Custom message mode
     if (data.mode === 'message') {
       const lines = [];
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 7; i++) {
         lines.push((data.customLines && data.customLines[i]) || '');
       }
       return lines;
     }
 
-    // Aircraft mode — rebuild lines client-side for live countdown
+    // Aircraft mode
     const a1 = data.aircraft[0];
     const a2 = data.aircraft[1];
 
     return [
       'FLEET STATUS BOARD',
+      '',
       'REG    STAT  ETD   ETA',
       formatAircraftLine(a1),
       formatAircraftLine(a2),
+      '',
       getClockLine()
     ];
   }

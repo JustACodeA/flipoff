@@ -14,7 +14,7 @@ module.exports = async function handler(req, res) {
 
     if (body.lines && Array.isArray(body.lines)) {
       state.mode = 'message';
-      state.customLines = body.lines.map(l => String(l || '').substring(0, 24)).slice(0, 5);
+      state.customLines = body.lines.map(l => String(l || '').substring(0, 24)).slice(0, 7);
     }
 
     const updated = await setBoardState(state);
