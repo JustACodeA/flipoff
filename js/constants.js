@@ -19,3 +19,17 @@ export const ACCENT_COLORS = [
 ];
 
 export const POLL_INTERVAL = 5000;
+
+export const STATUS_COLORS = {
+  READY:   '#00FF7F',
+  FLUG:    '#00AAFF',
+  SERVICE: '#FFCC00',
+  MAINT:   '#FF4D00',
+  PARKED:  '#888888'
+};
+
+export const BOARD_COLORS = {
+  TITLE:  '#00AAFF',
+  HEADER: '#888888',
+  CLOCK:  '#00FFCC'
+};

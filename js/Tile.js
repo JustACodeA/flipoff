@@ -5,6 +5,7 @@ export class Tile {
     this.row = row;
     this.col = col;
     this.currentChar = ' ';
+    this.currentColor = null;
     this.isAnimating = false;
     this._scrambleTimer = null;
 
@@ -37,7 +38,12 @@ export class Tile {
     this.frontEl.style.backgroundColor = '';
   }
 
-  scrambleTo(targetChar, delay) {
+  setColor(color) {
+    this.currentColor = color;
+    this.frontSpan.style.color = color || '';
+  }
+
+  scrambleTo(targetChar, delay, targetColor = null) {
     if (targetChar === this.currentChar) return;
 
     // Cancel any in-progress animation
@@ -75,9 +81,10 @@ export class Tile {
           clearInterval(this._scrambleTimer);
           this._scrambleTimer = null;
 
-          // Reset colors
+          // Reset background, apply target text color
           this.frontEl.style.backgroundColor = '';
-          this.frontSpan.style.color = '';
+          this.frontSpan.style.color = targetColor || '';
+          this.currentColor = targetColor;
 
           // Set the final character directly (skip 3D flip for reliability)
           // Use a brief opacity flash to simulate the flip settle

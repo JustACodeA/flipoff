@@ -12,6 +12,7 @@ export class Board {
     this.isTransitioning = false;
     this.tiles = [];
     this.currentGrid = [];
+    this.currentColorGrid = [];
     this.accentIndex = 0;
 
     // Build board DOM
@@ -31,15 +32,18 @@ export class Board {
     for (let r = 0; r < this.rows; r++) {
       const row = [];
       const charRow = [];
+      const colorRow = [];
       for (let c = 0; c < this.cols; c++) {
         const tile = new Tile(r, c);
         tile.setChar(' ');
         this.gridEl.appendChild(tile.el);
         row.push(tile);
         charRow.push(' ');
+        colorRow.push(null);
       }
       this.tiles.push(row);
       this.currentGrid.push(charRow);
+      this.currentColorGrid.push(colorRow);
     }
 
     this.boardEl.appendChild(this.gridEl);
@@ -71,17 +75,18 @@ export class Board {
     });
   }
 
-  displayMessage(lines) {
+  displayMessage(lines, colorGrid = null) {
     if (this.isTransitioning) return;
 
-    // Format lines into grid
-    const newGrid = this._formatToGrid(lines);
+    // Format lines and colors into grid
+    const { grid: newGrid, colors: newColors } = this._formatToGrid(lines, colorGrid);
 
     // Check if anything actually changed
     let hasChanges = false;
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
-        if (newGrid[r][c] !== this.currentGrid[r][c]) {
+        if (newGrid[r][c] !== this.currentGrid[r][c] ||
+            newColors[r][c] !== this.currentColorGrid[r][c]) {
           hasChanges = true;
           break;
         }
@@ -92,21 +97,27 @@ export class Board {
     if (!hasChanges) return;
 
     this.isTransitioning = true;
+    let hasTextChanges = false;
 
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
         const newChar = newGrid[r][c];
         const oldChar = this.currentGrid[r][c];
+        const newColor = newColors[r][c];
+        const oldColor = this.currentColorGrid[r][c];
 
         if (newChar !== oldChar) {
           const delay = (r * this.cols + c) * STAGGER_DELAY;
-          this.tiles[r][c].scrambleTo(newChar, delay);
+          this.tiles[r][c].scrambleTo(newChar, delay, newColor);
+          hasTextChanges = true;
+        } else if (newColor !== oldColor) {
+          this.tiles[r][c].setColor(newColor);
         }
       }
     }
 
-    // Play transition audio
-    if (this.soundEngine) {
+    // Play transition audio only if text changed
+    if (hasTextChanges && this.soundEngine) {
       this.soundEngine.playTransition();
     }
 
@@ -116,22 +127,36 @@ export class Board {
 
     // Update grid state
     this.currentGrid = newGrid;
+    this.currentColorGrid = newColors;
 
     // Clear transitioning flag after animation completes
+    const transitionTime = hasTextChanges ? TOTAL_TRANSITION + 200 : 100;
     setTimeout(() => {
       this.isTransitioning = false;
-    }, TOTAL_TRANSITION + 200);
+    }, transitionTime);
   }
 
-  _formatToGrid(lines) {
+  _formatToGrid(lines, colorGrid) {
     const grid = [];
+    const colors = [];
     for (let r = 0; r < this.rows; r++) {
       const line = (lines[r] || '').toUpperCase();
       const padTotal = this.cols - line.length;
       const padLeft = Math.max(0, Math.floor(padTotal / 2));
       const padded = ' '.repeat(padLeft) + line + ' '.repeat(Math.max(0, this.cols - padLeft - line.length));
       grid.push(padded.split(''));
+
+      // Shift color array by same centering offset
+      const rowColors = colorGrid && colorGrid[r] ? colorGrid[r] : [];
+      const paddedColors = [];
+      for (let c = 0; c < this.cols; c++) {
+        const srcIdx = c - padLeft;
+        paddedColors.push(
+          (srcIdx >= 0 && srcIdx < rowColors.length) ? rowColors[srcIdx] : null
+        );
+      }
+      colors.push(paddedColors);
     }
-    return grid;
+    return { grid, colors };
   }
 }
