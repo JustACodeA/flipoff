@@ -1,5 +1,8 @@
 {
   "name": "flipoff-status-board",
   "version": "1.0.0",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "ioredis": "^5.4.1"
+  }
 }
