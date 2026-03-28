@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentData = null;
   let lastRenderedKey = null;
+  let connectionOk = false;
 
   function pad(str, len) {
     return (str || '').substring(0, len).padEnd(len, ' ');
@@ -128,16 +129,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  function updateIndicators() {
+    if (!currentData || currentData.mode === 'message') {
+      board.updateIndicators(null, null, connectionOk);
+      return;
+    }
+    const a1Color = STATUS_COLORS[currentData.aircraft[0].status] || '#333';
+    const a2Color = STATUS_COLORS[currentData.aircraft[1].status] || '#333';
+    board.updateIndicators(a1Color, a2Color, connectionOk);
+  }
+
   // --- API polling ---
 
   async function fetchStatus() {
     try {
       const res = await fetch('/api/status');
-      if (!res.ok) return;
+      if (!res.ok) { connectionOk = false; updateIndicators(); return; }
       currentData = await res.json();
+      connectionOk = true;
       updateBoard();
+      updateIndicators();
     } catch (e) {
-      // Network error — silently retry on next poll
+      connectionOk = false;
+      updateIndicators();
     }
   }
 
@@ -145,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   setInterval(() => {
     if (!board.isTransitioning) {
+      soundEngine.preResume();
       fetchStatus();
     }
   }, POLL_INTERVAL);

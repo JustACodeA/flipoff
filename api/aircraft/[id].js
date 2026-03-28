@@ -2,7 +2,7 @@ const { getBoardState, setBoardState } = require('../../lib/storage');
 const { formatBoardLines } = require('../../lib/format');
 const { validateAuth } = require('../../lib/auth');
 
-const VALID_STATUSES = ['READY', 'FLUG', 'SERVICE', 'MAINT', 'PARKED'];
+const VALID_STATUSES = ['READY', 'FLUG', 'SERVC', 'MAINT', 'PARKD', 'SERVICE', 'PARKED'];
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'PUT') {

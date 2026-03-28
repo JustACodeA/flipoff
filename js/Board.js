@@ -1,7 +1,7 @@
 import { Tile } from './Tile.js';
 import {
   GRID_COLS, GRID_ROWS, STAGGER_DELAY,
-  TOTAL_TRANSITION, ACCENT_COLORS
+  TOTAL_TRANSITION
 } from './constants.js';
 
 export class Board {
@@ -13,7 +13,6 @@ export class Board {
     this.tiles = [];
     this.currentGrid = [];
     this.currentColorGrid = [];
-    this.accentIndex = 0;
 
     // Build board DOM
     this.boardEl = document.createElement('div');
@@ -52,8 +51,10 @@ export class Board {
     this.rightBar = this._createAccentBar('accent-bar-right');
     this.boardEl.appendChild(this.rightBar);
 
+    this.leftSegments = Array.from(this.leftBar.querySelectorAll('.accent-segment'));
+    this.rightSegments = Array.from(this.rightBar.querySelectorAll('.accent-segment'));
+
     containerEl.appendChild(this.boardEl);
-    this._updateAccentColors();
   }
 
   _createAccentBar(extraClass) {
@@ -67,12 +68,19 @@ export class Board {
     return bar;
   }
 
-  _updateAccentColors() {
-    const color = ACCENT_COLORS[this.accentIndex % ACCENT_COLORS.length];
-    const segments = this.boardEl.querySelectorAll('.accent-segment');
-    segments.forEach(seg => {
-      seg.style.backgroundColor = color;
-    });
+  updateIndicators(ac1Color, ac2Color, connectionOk) {
+    this.leftSegments[0].style.backgroundColor = ac1Color || '#333';
+    this.leftSegments[1].style.backgroundColor = ac2Color || '#333';
+    const connColor = connectionOk ? '#00FF7F' : '#FF2D00';
+    this.rightSegments[0].style.backgroundColor = connColor;
+    this.rightSegments[1].style.backgroundColor = connColor;
+    if (connectionOk) {
+      this.rightSegments.forEach(seg => {
+        seg.classList.remove('pulse');
+        void seg.offsetWidth;
+        seg.classList.add('pulse');
+      });
+    }
   }
 
   displayMessage(lines, colorGrid = null) {
@@ -97,8 +105,20 @@ export class Board {
     if (!hasChanges) return;
 
     this.isTransitioning = true;
-    let hasTextChanges = false;
 
+    // Pre-scan for text changes and trigger sound BEFORE scheduling tiles
+    let hasTextChanges = false;
+    for (let r = 0; r < this.rows && !hasTextChanges; r++) {
+      for (let c = 0; c < this.cols && !hasTextChanges; c++) {
+        if (newGrid[r][c] !== this.currentGrid[r][c]) hasTextChanges = true;
+      }
+    }
+
+    if (hasTextChanges && this.soundEngine) {
+      this.soundEngine.playTransition();
+    }
+
+    // Schedule tile animations
     for (let r = 0; r < this.rows; r++) {
       for (let c = 0; c < this.cols; c++) {
         const newChar = newGrid[r][c];
@@ -109,21 +129,11 @@ export class Board {
         if (newChar !== oldChar) {
           const delay = (r * this.cols + c) * STAGGER_DELAY;
           this.tiles[r][c].scrambleTo(newChar, delay, newColor);
-          hasTextChanges = true;
         } else if (newColor !== oldColor) {
           this.tiles[r][c].setColor(newColor);
         }
       }
     }
-
-    // Play transition audio only if text changed
-    if (hasTextChanges && this.soundEngine) {
-      this.soundEngine.playTransition();
-    }
-
-    // Cycle accent colors
-    this.accentIndex++;
-    this._updateAccentColors();
 
     // Update grid state
     this.currentGrid = newGrid;

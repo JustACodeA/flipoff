@@ -47,6 +47,15 @@
   transition: background-color 0.5s ease;
 }
 
+@keyframes pulse-indicator {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(1.2); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.accent-segment.pulse {
+  animation: pulse-indicator 0.6s ease-in-out;
+}
+
 /* Keyboard Shortcut Indicator */
 .keyboard-hint {
   position: absolute;
