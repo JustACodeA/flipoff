@@ -23,8 +23,10 @@ export const POLL_INTERVAL = 5000;
 export const STATUS_COLORS = {
   READY:   '#00FF7F',
   FLUG:    '#00AAFF',
-  SERVICE: '#FFCC00',
+  SERVC:   '#FFCC00',
   MAINT:   '#FF4D00',
+  PARKD:   '#888888',
+  SERVICE: '#FFCC00',
   PARKED:  '#888888'
 };
 

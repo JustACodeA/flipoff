@@ -27,7 +27,13 @@ export class SoundEngine {
     }
   }
 
-  resume() {
+  async resume() {
+    if (this.ctx && this.ctx.state === 'suspended') {
+      await this.ctx.resume();
+    }
+  }
+
+  preResume() {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
@@ -43,9 +49,9 @@ export class SoundEngine {
    * This is a single recorded clip of a split-flap board transition,
    * played once per message change (not per tile).
    */
-  playTransition() {
+  async playTransition() {
     if (!this.ctx || !this._audioBuffer || this.muted) return;
-    this.resume();
+    await this.resume();
 
     // Stop any currently playing transition sound
     if (this._currentSource) {
